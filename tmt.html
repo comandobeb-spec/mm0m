@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome back to Sudan! 🇸🇩</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800;900&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        :root {
+            --bg-dark: #050811;
+            --neon-blue: #00f0ff;
+            --neon-gold: #ffd700;
+            --sudan-green: #007a3d;
+            --sudan-red: #d21034;
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Cairo', sans-serif;
+            color: #ffffff;
+        }
+
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: radial-gradient(circle at center, #0a1128 0%, #02040a 100%);
+        }
+
+        #portal-wrapper {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .door-panel {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 15, 30, 0.98), rgba(5, 8, 17, 0.99));
+            border-color: rgba(0, 240, 255, 0.2);
+            transition: transform 1.4s cubic-bezier(0.77, 0, 0.175, 1);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .door-left {
+            left: 0;
+            border-left: 2px solid var(--neon-blue);
+            box-shadow: inset -20px 0 50px rgba(0,0,0,0.8);
+        }
+
+        .door-right {
+            right: 0;
+            border-right: 2px solid var(--neon-blue);
+            box-shadow: inset 20px 0 50px rgba(0,0,0,0.8);
+        }
+
+        .portal-unlocked .door-left {
+            transform: translateX(-100%);
+        }
+        .portal-unlocked .door-right {
+            transform: translateX(100%);
+        }
+        .portal-unlocked #portal-wrapper {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gate-center-console {
+            position: relative;
+            z-index: 10;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 40px 35px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6),
+                        0 0 40px rgba(0, 240, 255, 0.15);
+            animation: consoleFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes consoleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .portal-header {
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ffffff, #00f0ff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .passcode-display {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(0, 240, 255, 0.3);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            height: 60px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        .code-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .code-dot.active {
+            background: var(--neon-blue);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            transform: scale(1.2);
+        }
+
+        .code-dot.error {
+            background: var(--sudan-red);
+            border-color: var(--sudan-red);
+            box-shadow: 0 0 15px var(--sudan-red);
+        }
+
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .key-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 16px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .key-btn:hover {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: var(--neon-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2);
+        }
+
+        .key-btn:active {
+            transform: translateY(1px);
+        }
+
+        .key-btn.action {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .shake {
+            animation: shakeAnim 0.4s ease-in-out;
+        }
+
+        @keyframes shakeAnim {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        #main-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 1.5s ease 0.5s, transform 1.5s ease 0.5s;
+            padding: 60px 20px;
+            scroll-behavior: smooth;
+        }
+
+        .content-visible #main-content {
+            opacity: 1;
+            transform: scale(1);
+            overflow-y: auto;
+        }
+
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, var(--neon-gold) 50%, var(--sudan-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 50px;
+            font-weight: 300;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .info-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: right;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: var(--neon-gold);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .card-text {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .poem-section {
+            background: linear-gradient(135deg, rgba(0, 122, 61, 0.2), rgba(210, 16, 52, 0.15));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 28px;
+            padding: 40px;
+            margin-top: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        .poem-title {
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 2rem;
+            color: var(--neon-gold);
+            margin-bottom: 20px;
+        }
+
+        .poem-lines {
+            font-size: 1.25rem;
+            line-height: 2.2;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .hero-title { font-size: 2.2rem; }
+            .portal-header { font-size: 1.4rem; }
+            .gate-center-console { padding: 30px 20px; }
+            .key-btn { padding: 12px 0; font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas" class="bg-canvas"></canvas>
+
+    <div id="portal-wrapper">
+        <div class="door-panel door-left"></div>
+        <div class="door-panel door-right"></div>
+
+        <div class="gate-center-console" id="consoleBox">
+            <div class="portal-header">Welcome back to Sudan! 🇸🇩❤️</div>
+            
+            <div class="passcode-display" id="passcodeDisplay">
+                <div class="code-dot"></div>
+                <div class="code-dot"></div>
+                <div class="code-dot"></div>
+            </div>
+
+            <div class="keypad-grid">
+                <button class="key-btn" onclick="pressKey('1')">1</button>
+                <button class="key-btn" onclick="pressKey('2')">2</button>
+                <button class="key-btn" onclick="pressKey('3')">3</button>
+                <button class="key-btn" onclick="pressKey('4')">4</button>
+                <button class="key-btn" onclick="pressKey('5')">5</button>
+                <button class="key-btn" onclick="pressKey('6')">6</button>
+                <button class="key-btn" onclick="pressKey('7')">7</button>
+                <button class="key-btn" onclick="pressKey('8')">8</button>
+                <button class="key-btn" onclick="pressKey('9')">9</button>
+                <button class="key-btn action" onclick="clearPasscode()">مسح</button>
+                <button class="key-btn" onclick="pressKey('0')">0</button>
+                <button class="key-btn action" onclick="deleteLast()">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content">
+        <div class="content-container">
+            <h1 class="hero-title">مرحباً بك في موطن العزة والكرامة 🇸🇩</h1>
+            <p class="hero-subtitle">حيث يلتقي النيلان، وتُشرق الشمس على أرض الكرم والتاريخ المجيد</p>
+
+            <div class="cards-grid">
+                <div class="info-card">
+                    <span class="card-icon">🌊</span>
+                    <h3 class="card-title">ملتقى النيلين</h3>
+                    <p class="card-text">
+                        هنا في الخرطوم، يتعانق النيل الأرزق العارم والنيل الأبيض الهادئ في لوحة إلهية ساحرة، ليصنعا شريان الحياة الذي يغذي الحضارات عبر التاريخ.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <span class="card-icon">🏛️</span>
+                    <h3 class="card-title">عراقة مروي</h3>
+                    <p class="card-text">
+                        أرض الأهرامات الخالدة والحضارة الكوشية الضاربة في عمق التاريخ، معلمة العالم كيف تبنى الممالك وتصان العزة والكرامة.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <span class="card-icon">🤝</span>
+                    <h3 class="card-title">طيبة وأصالة</h3>
+                    <p class="card-text">
+                        السودان ليس مجرد جغرافيا، بل هو شعب أسمر كالنيل، يفتح بيته وقلبه للغريب قبل القريب، ويمتاز بالنخوة، الشهامة، والكرم الأصيل.
+                    </p>
+                </div>
+            </div>
+
+            <div class="poem-section">
+                <h2 class="poem-title">في حب الوطن</h2>
+                <div class="poem-lines">
+                    وطن الجدود والشموخ والمجد التليد <br>
+                    سوداننا العالي يظل دوماً في الوريد <br>
+                    بين النخيل وعلى الرمال نرى الأمل <br>
+                    ويبقى شموخك يا موطني عهداً مجيد
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SECRET_CODE = "249";
+        let currentInput = "";
+        const dots = document.querySelectorAll('.code-dot');
+        const consoleBox = document.getElementById('consoleBox');
+        const body = document.body;
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                pressKey(e.key);
+            } else if (e.key === 'Backspace') {
+                deleteLast();
+            } else if (e.key === 'Escape') {
+                clearPasscode();
+            }
+        });
+
+        function pressKey(num) {
+            if (currentInput.length < 3) {
+                currentInput += num;
+                updateDots();
+                playBeepSound(440 + currentInput.length * 100, 0.05);
+
+                if (currentInput.length === 3) {
+                    setTimeout(validatePasscode, 150);
+                }
+            }
+        }
+
+        function deleteLast() {
+            if (currentInput.length > 0) {
+                currentInput = currentInput.slice(0, -1);
+                updateDots();
+                playBeepSound(300, 0.04);
+            }
+        }
+
+        function clearPasscode() {
+            currentInput = "";
+            updateDots();
+            dots.forEach(dot => dot.classList.remove('error'));
+        }
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentInput.length) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+                dot.classList.remove('error');
+            });
+        }
+
+        function validatePasscode() {
+            if (currentInput === SECRET_CODE) {
+                playUnlockSound();
+                body.classList.add('portal-unlocked');
+                
+                setTimeout(() => {
+                    body.classList.add('content-visible');
+                }, 800);
+
+            } else {
+                playErrorSound();
+                consoleBox.classList.add('shake');
+                dots.forEach(dot => dot.classList.add('error'));
+
+                setTimeout(() => {
+                    consoleBox.classList.remove('shake');
+                    clearPasscode();
+                }, 500);
+            }
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBeepSound(freq, duration) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playErrorSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playUnlockSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.6);
+            
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(now + 0.8);
+        }
+
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = rgba(0, 240, 255, ${this.alpha});
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 70; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+    </script>
+</body>
+</html>
